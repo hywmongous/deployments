@@ -1,8 +1,9 @@
 PORTAINERPATH=./portainer
+WATCHTOWERPATH=./watchtower
 
-.ONESHELL: portainer
+.ONESHELL: portainer watchtower
 .SILENT:
-.PHONY: portainer
+.PHONY: portainer watchtower
 
 help:
 	@echo 'Project targets:'
@@ -14,6 +15,18 @@ portainer:
 	sudo docker stack deploy -c $(PORTAINERPATH)/docker-compose.yml portainer
 	@echo '  You can now access portainer at https://localhost:9443'
 
+watchtower:
+	@echo 'Deploying Watchtower'
+	sudo docker stack deploy -c $(WATCHTOWERPATH)/docker-compose.yml watchtower
+	@echo '  Watchtower is now polling new images and handles updating'
+
+rm-all:
+	sudo docker stack rm $$(sudo docker stack ls --format "{{.Name}}")
+
+rm:
+	sudo docker stack rm portainer watchtower
+
 deploy:
-	$(MAKE) portainer
 	@echo 'Deploying everything'
+	$(MAKE) portainer
+	$(MAKE) watchtower
