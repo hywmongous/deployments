@@ -1,0 +1,19 @@
+version: "3.8"
+
+networks:
+  jaeger:
+    driver: overlay
+    attachable: true
+
+services:
+  jaeger:
+    image: jaegertracing/all-in-one:latest
+    networks:
+      - jaeger
+    ports:
+      - 16686:16686 # API and UI
+      - 14269:14269 # Health check scans
+    restart: unless-stopped
+    deploy:
+      mode: replicated
+      replicas: 1

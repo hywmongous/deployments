@@ -1,0 +1,39 @@
+version: "3.8"
+
+networks:
+  kafka:
+    driver: overlay
+    attachable: true
+
+services:
+  zookeeper:
+    image: wurstmeister/zookeeper:latest
+    restart: always
+    env_file:
+      - ./zookeeper.env
+    networks:
+      - kafka
+
+  kafka:
+    image: wurstmeister/kafka:latest
+    restart: always
+    depends_on:
+      - zookeeper
+    env_file:
+      - ./kafka.env
+    networks:
+      - kafka
+
+  kafka-ui:
+    image: provectuslabs/kafka-ui:latest
+    ports:
+      - "8081:8080"
+    restart: always
+    networks:
+      - kafka
+    depends_on:
+      - kafka
+    environment:
+      - KAFKA_CLUSTERS_0_NAME=local
+      - KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS=kafka:9092
+      - KAFKA_CLUSTERS_0_ZOOKEEPER=zookeeper:2181

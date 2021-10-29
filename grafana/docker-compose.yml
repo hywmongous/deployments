@@ -1,0 +1,25 @@
+version: "3.8"
+
+networks:
+  prometheus:
+    driver: overlay
+    external:
+      name: monitoring_prometheus
+
+volumes:
+  grafana:
+    driver: local
+
+services:
+  grafana:
+    image: grafana/grafana:latest
+    ports:
+      - "3000:3000"
+    networks:
+      - prometheus
+    volumes:
+      - grafana:/var/lib/grafana
+    restart: unless-stopped
+    deploy:
+      mode: replicated
+      replicas: 1
