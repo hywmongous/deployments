@@ -4,9 +4,9 @@ GRAFANA=./grafana
 PROMETHEUS=./prometheus
 KAFKA=./kafka
 
-.ONESHELL: dev portainer grafana prometheus kafka jaeger
-.PHONY: dev portainer grafana prometheus kafka jaeger
-.SILENT: rm-all
+.ONESHELL: dev-min dev portainer grafana prometheus kafka jaeger
+.PHONY: dev-min dev portainer grafana prometheus kafka jaeger
+.SILENT: rm
 
 help:
 	@echo 'Deployments:'
@@ -18,7 +18,7 @@ help:
 	@echo '  kafka                         - Deploys the kafka stack'
 	@echo '  jaeger                        - Deploys the jaeger stack'
 	@echo 'Utilities:'
-	@echo '  rm-all                        - Removes all stacks'
+	@echo '  rm                            - Removes all stacks'
 
 portainer:
 	@echo 'Deploying Portainer'
@@ -34,7 +34,7 @@ prometheus:
 	@echo 'Deploying Prometheus'
 	docker stack deploy -c $(PROMETHEUS)/docker-compose.yml monitoring
 	@echo '  You can now access Prometheus at http://localhost:9090'
-	@echo '  You can now access Node Exporter at http://localhost:9100'
+	@echo '  You can now access Node Exporter at http://localhost:9100/metrics'
 	@echo '  You can now access Cadvisor at http://localhost:8080'
 
 kafka:
@@ -47,7 +47,9 @@ jaeger:
 	docker stack deploy -c $(JAEGER)/docker-compose.yml tracing
 	@echo '  You can now access Jaeger at http://localhost:16686'
 
+dev-min: kafka
+
 dev: portainer prometheus kafka jaeger grafana
 
-rm-all:
+rm:
 	docker stack rm $$(docker stack ls --format "{{.Name}}")
