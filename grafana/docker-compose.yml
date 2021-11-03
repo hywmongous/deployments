@@ -5,6 +5,10 @@ networks:
     driver: overlay
     external:
       name: monitoring_prometheus
+  influxdb:
+    driver: overlay
+    external:
+      name: timeseries_influxdb
 
 volumes:
   grafana:
@@ -17,8 +21,10 @@ services:
       - "3000:3000"
     networks:
       - prometheus
+      - influxdb
     volumes:
       - grafana:/var/lib/grafana
+      - ./datasources:/etc/grafana/provisioning/datasources
     restart: unless-stopped
     deploy:
       mode: replicated
