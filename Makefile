@@ -3,9 +3,10 @@ JAEGER=./jaeger
 GRAFANA=./grafana
 PROMETHEUS=./prometheus
 KAFKA=./kafka
+INFLUXDB=./influxdb
 
-.ONESHELL: dev-min dev portainer grafana prometheus kafka jaeger
-.PHONY: dev-min dev portainer grafana prometheus kafka jaeger
+.ONESHELL: dev-min dev management analytics monitoring streaming tracing timeseries
+.PHONY: dev-min dev management analytics monitoring streaming tracing timeseries
 .SILENT: rm
 
 help:
@@ -20,36 +21,40 @@ help:
 	@echo 'Utilities:'
 	@echo '  rm                            - Removes all stacks'
 
-portainer:
-	@echo 'Deploying Portainer'
+management:
+	@echo 'Deploying "management": Portainer'
 	docker stack deploy -c $(PORTAINERPATH)/docker-compose.yml management
 	@echo '  You can now access Portainer at http://localhost:9000'
 
-grafana:
-	@echo 'Deploying grafana'
+analytics:
+	@echo 'Deploying "analytics": grafana'
 	docker stack deploy -c $(GRAFANA)/docker-compose.yml analytics
 	@echo '  You can now access Grafana at http://localhost:3000'
 
-prometheus:
-	@echo 'Deploying Prometheus'
+monitoring:
+	@echo 'Deploying "monitoring": Prometheus'
 	docker stack deploy -c $(PROMETHEUS)/docker-compose.yml monitoring
 	@echo '  You can now access Prometheus at http://localhost:9090'
 	@echo '  You can now access Node Exporter at http://localhost:9100/metrics'
 	@echo '  You can now access Cadvisor at http://localhost:8080'
 
-kafka:
-	@echo 'Deploying Kafka'
+streaming:
+	@echo 'Deploying "streaming": Kafka'
 	docker stack deploy -c $(KAFKA)/docker-compose.yml streaming
 	@echo '  You can now access Kafka-UI at http://localhost:8081'
 
-jaeger:
-	@echo 'Deploying Jaeger'
+tracing:
+	@echo 'Deploying "tracing": Jaeger'
 	docker stack deploy -c $(JAEGER)/docker-compose.yml tracing
 	@echo '  You can now access Jaeger at http://localhost:16686'
 
-dev-min: kafka
+timeseries:
+	@echo 'Deploying "time series": InfluxDB'
+	docker stack deploy -c $(INFLUXDB)/docker-compose.yml timeseries
 
-dev: portainer prometheus kafka jaeger grafana
+dev-min: streaming
+
+dev: management monitoring streaming tracing timeseries analytics
 
 rm:
 	docker stack rm $$(docker stack ls --format "{{.Name}}")
