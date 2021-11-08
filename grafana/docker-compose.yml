@@ -3,12 +3,12 @@ version: "3.8"
 networks:
   prometheus:
     driver: overlay
-    external:
-      name: monitoring_prometheus
+    external: true
+    name: monitoring_prometheus
   influxdb:
     driver: overlay
-    external:
-      name: timeseries_influxdb
+    external: true
+    name: timeseries_influxdb
 
 volumes:
   grafana:
@@ -24,7 +24,10 @@ services:
       - influxdb
     volumes:
       - grafana:/var/lib/grafana
-      - ./datasources:/etc/grafana/provisioning/datasources
+      - ./conf.ini:/etc/grafana/grafana.ini
+      - ./dashboards:/etc/grafana/dashboards
+      - ./dashboard.yml:/etc/grafana/provisioning/dashboards/dashboard.yml
+      - ./datasource.yml:/etc/grafana/provisioning/datasources/datasource.yml
     restart: unless-stopped
     deploy:
       mode: replicated

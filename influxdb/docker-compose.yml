@@ -12,5 +12,6 @@ services:
       - influxdb
     ports:
       - "8086:8086"
+      - "8083:8083"
     environment:
       - INFLUXDB_DB=k6
