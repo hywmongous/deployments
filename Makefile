@@ -4,9 +4,10 @@ GRAFANA=./grafana
 PROMETHEUS=./prometheus
 KAFKA=./kafka
 INFLUXDB=./influxdb
+TRAEFIK=./traefik
 
-.ONESHELL: dev-min dev management analytics monitoring streaming tracing timeseries
-.PHONY: dev-min dev management analytics monitoring streaming tracing timeseries
+.ONESHELL: dev-min dev reverse-proxy management analytics monitoring streaming tracing timeseries
+.PHONY: dev-min dev reverse-proxy management analytics monitoring streaming tracing timeseries
 .SILENT: rm
 
 help:
@@ -52,9 +53,15 @@ timeseries:
 	@echo 'Deploying "time series": InfluxDB'
 	docker stack deploy -c $(INFLUXDB)/docker-compose.yml timeseries
 
+reverse-proxy:
+	@echo 'Deploying "reverse proxy": Traefik'
+	docker stack deploy -c $(TRAEFIK)/docker-compose.yml reverse-proxy
+	@echo '   You can now access Traefik at http://localhost:8080'
+	@echo '   You can now access "whoami" http://whoami.localhost'
+
 dev-min: streaming
 
-dev: management monitoring streaming tracing timeseries analytics
+dev: management reverse-proxy monitoring streaming tracing timeseries analytics
 
 rm:
 	docker stack rm $$(docker stack ls --format "{{.Name}}")

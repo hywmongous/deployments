@@ -1,0 +1,42 @@
+version: "3.8"
+
+services:
+  traefik:
+    image: "traefik"
+    command:
+      - "--global.sendanonymoususage=false"
+      - "--global.checknewversion=true"
+      - "--api.insecure=true"
+      - "--api.dashboard=true"
+      - "--api.debug=true"
+      - "--log=true"
+      - "--accesslog=true"
+      - "--providers.docker"
+      - "--providers.docker.exposedbydefault=false"
+      - "--providers.file.directory=/configuration/"
+      - "--providers.file.watch=true"
+      - "--entrypoints.web.address=:80"
+      - "--entrypoints.web-secure.address=:443"
+      # - "--metrics.influxdb=true"
+      # - "--metrics.influxdb.address=localhost:8089"
+      # - "--metrics.influxdb.database=traefik" # HTTP
+      # - "--metrics.influxdb.password=XXX" # HTTP
+      # - "--metrics.influxdb.username=XXX" # HTTP
+      # - "--metrics.influxdb.protocol=udp"
+      # - "--tracing.jaeger=true"
+    ports:
+      - "80:80"
+      - "443:443"
+      - "8080:8080"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./config:/config:ro
+      - ./certs/:/certs:ro
+
+  whoami:
+    image: "traefik/whoami"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.whoami.rule=Host(`whoami.localhost`) || (Host(`localhost`) && Path(`/whoami`))"
+      - "traefik.http.routers.whoami.entrypoints=web-secure"
+      - "traefik.http.routers.whoami.tls=true"
