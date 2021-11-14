@@ -5,7 +5,9 @@ datasources:
     type: influxdb
     access: proxy
     database: k6
-    url: influxdb:8086
+    url: http://influxdb:8086
+    user: admin
+    password: admin
     editable: true
     version: 1
     org_id: 1

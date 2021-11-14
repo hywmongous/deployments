@@ -29,6 +29,9 @@ services:
       - ./dashboard.yml:/etc/grafana/provisioning/dashboards/dashboard.yml
       - ./datasource.yml:/etc/grafana/provisioning/datasources/datasource.yml
     restart: unless-stopped
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
     deploy:
       mode: replicated
       replicas: 1

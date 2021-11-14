@@ -5,13 +5,39 @@ networks:
     driver: overlay
     attachable: true
 
+volumes:
+  influxdb:
+  chronograf:
+
 services:
   influxdb:
-    image: influxdb:1.8
+    image: influxdb
     networks:
       - influxdb
     ports:
+      - "8089:8089/udp"
       - "8086:8086"
       - "8083:8083"
+    volumes:
+      - influxdb:/var/lib/influxdb
     environment:
-      - INFLUXDB_DB=k6
+      # - INFLUXDB_DB=k6; CREATE DATABASE traefik;
+      - DOCKER_INFLUXDB_INIT_USERNAME=admin
+      - DOCKER_INFLUXDB_INIT_PASSWORD=admin
+      - DOCKER_INFLUXDB_INIT_ORG=org
+      - DOCKER_INFLUXDB_INIT_BUCKET=bucket
+
+  chronograf:
+    image: chronograf
+    ports:
+      - 8889:8888
+    volumes:
+      - chronograf:/var/lib/chronograf
+    networks:
+      - influxdb
+    depends_on:
+      - influxdb
+    environment:
+      - INFLUXDB_URL=http://influxdb:8086
+      - INFLUXDB_USERNAME=admin
+      - INFLUXDB_PASSWORD=admin

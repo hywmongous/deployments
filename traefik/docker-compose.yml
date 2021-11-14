@@ -1,42 +1,79 @@
 version: "3.8"
 
+volumes:
+  traefik-ssl-certs:
+    driver: local
+
+networks:
+  edge:
+    driver: overlay
+    attachable: true
+  jaeger:
+    driver: overlay
+    external: true
+    name: tracing_jaeger
+  prometheus:
+    driver: overlay
+    external: true
+    name: monitoring_prometheus
+
+
 services:
   traefik:
     image: "traefik"
     command:
       - "--global.sendanonymoususage=false"
       - "--global.checknewversion=true"
+      # API
       - "--api.insecure=true"
       - "--api.dashboard=true"
       - "--api.debug=true"
-      - "--log=true"
-      - "--accesslog=true"
+      # Providers
       - "--providers.docker"
       - "--providers.docker.exposedbydefault=false"
-      - "--providers.file.directory=/configuration/"
-      - "--providers.file.watch=true"
+      # Entrypoints
       - "--entrypoints.web.address=:80"
+      - "--entrypoints.web.http.redirections.entryPoint.to=web-secure"
+      - "--entrypoints.web.http.redirections.entryPoint.scheme=https"
+      - "--entrypoints.web.http.redirections.entrypoint.permanent=true"
       - "--entrypoints.web-secure.address=:443"
+      # Logging
+      - "--log=true"
+      - "--accesslog=true"
+      # Metrics
+      - "--metrics.prometheus=true"
+      - "--entryPoints.metrics.address=:8082"
+      - "--metrics.prometheus.entryPoint=metrics"
       # - "--metrics.influxdb=true"
-      # - "--metrics.influxdb.address=localhost:8089"
+      # - "--metrics.influxdb.address=influxdb:http://influxdb:8086"
       # - "--metrics.influxdb.database=traefik" # HTTP
-      # - "--metrics.influxdb.password=XXX" # HTTP
-      # - "--metrics.influxdb.username=XXX" # HTTP
-      # - "--metrics.influxdb.protocol=udp"
-      # - "--tracing.jaeger=true"
+      # - "--metrics.influxdb.password=admin" # HTTP
+      # - "--metrics.influxdb.username=admin" # HTTP
+      # - "--metrics.influxdb.protocol=http"
+      # Tracing
+      - "--tracing.jaeger=true"
+      - "--tracing.jaeger.samplingServerURL=jaeger:5778/sampling"
+      - "--tracing.jaeger.localAgentHostPort=jaeger:6831"
+      - "--tracing.jaeger.collector.endpoint=http://jaeger:14268/api/traces?format=jaeger.thrift"
     ports:
       - "80:80"
       - "443:443"
       - "8080:8080"
+      - "8082:8082"
     volumes:
+      - ./traefik:/etc/traefik
+      - traefik-ssl-certs:/ssl-certs
       - /var/run/docker.sock:/var/run/docker.sock:ro
-      - ./config:/config:ro
-      - ./certs/:/certs:ro
+    networks:
+      - edge
+      - jaeger
+      - prometheus
 
   whoami:
     image: "traefik/whoami"
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.whoami.rule=Host(`whoami.localhost`) || (Host(`localhost`) && Path(`/whoami`))"
-      - "traefik.http.routers.whoami.entrypoints=web-secure"
       - "traefik.http.routers.whoami.tls=true"
+    networks:
+      - edge

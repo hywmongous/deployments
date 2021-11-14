@@ -1,0 +1,7 @@
+certificatesResolvers:
+  acme:
+    email: andreasbrandhoej@hotmail.com
+    storage: /ssl-certs/acme.json
+    caServer: "https://acme-v02.api.letsencrypt.org/directory"
+    httpChallenge:
+      entryPoint: web

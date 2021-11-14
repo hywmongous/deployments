@@ -6,8 +6,8 @@ KAFKA=./kafka
 INFLUXDB=./influxdb
 TRAEFIK=./traefik
 
-.ONESHELL: dev-min dev reverse-proxy management analytics monitoring streaming tracing timeseries
-.PHONY: dev-min dev reverse-proxy management analytics monitoring streaming tracing timeseries
+.ONESHELL: dev-min dev edge management analytics monitoring streaming tracing timeseries
+.PHONY: dev-min dev edge management analytics monitoring streaming tracing timeseries
 .SILENT: rm
 
 help:
@@ -37,7 +37,7 @@ monitoring:
 	docker stack deploy -c $(PROMETHEUS)/docker-compose.yml monitoring
 	@echo '  You can now access Prometheus at http://localhost:9090'
 	@echo '  You can now access Node Exporter at http://localhost:9100/metrics'
-	@echo '  You can now access Cadvisor at http://localhost:8080'
+	@echo '  You can now access Cadvisor at http://localhost:8085'
 
 streaming:
 	@echo 'Deploying "streaming": Kafka'
@@ -52,16 +52,17 @@ tracing:
 timeseries:
 	@echo 'Deploying "time series": InfluxDB'
 	docker stack deploy -c $(INFLUXDB)/docker-compose.yml timeseries
+	@echo '  You can now access Chronograph at http://localhost:8889'
 
-reverse-proxy:
-	@echo 'Deploying "reverse proxy": Traefik'
-	docker stack deploy -c $(TRAEFIK)/docker-compose.yml reverse-proxy
+edge:
+	@echo 'Deploying "edge": Traefik'
+	docker stack deploy -c $(TRAEFIK)/docker-compose.yml edge
 	@echo '   You can now access Traefik at http://localhost:8080'
 	@echo '   You can now access "whoami" http://whoami.localhost'
 
 dev-min: streaming
 
-dev: management reverse-proxy monitoring streaming tracing timeseries analytics
+dev: management monitoring streaming tracing timeseries analytics edge
 
 rm:
 	docker stack rm $$(docker stack ls --format "{{.Name}}")
